@@ -19,9 +19,8 @@ import os
 import re
 import sys
 import math
-import click
+import argparse
 import random
-
 
 def grid_to_tracks(origin, count, step):
     tracks = []
@@ -35,7 +34,7 @@ def grid_to_tracks(origin, count, step):
     return tracks
 
 # HUMAN SORTING: https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
-def natural_keys(enum):
+def natural_keys(text):
     def atof(text):
         try:
             retval = float(text)
@@ -43,7 +42,6 @@ def natural_keys(enum):
             retval = text
         return retval
 
-    text = enum[0]
     text = re.sub(r"(\[|\]|\.|\$)", "", text)
     """
     alist.sort(key=natural_keys) sorts in human order
@@ -53,8 +51,7 @@ def natural_keys(enum):
     """
     return [atof(c) for c in re.split(r"[+-]?([0-9]+(?:[.][0-9]*)?|[.][0-9]+)", text)]
 
-def bus_keys(enum):
-    text = enum[0]
+def bus_keys(text):
     m = re.match(r"^.*\[(\d+)\]$", text)
     if not m:
         return -1
@@ -88,3 +85,71 @@ def parse_pin_config(config_file_name):
                 cur_side = token
     return pin_placement_cfg
 
+def order_pins(pin_config, pins):
+    sorted_pins = list(sorted(pins, key=natural_keys))
+    sorted_pins = list(sorted(sorted_pins, key=bus_keys))
+    pin_placement = {"#N": [], "#E": [], "#S": [], "#W": []}
+    pin_regex_map = {}
+    for side in pin_config:
+        for regex in pin_config[side]:
+            regex += "$"
+            for pin_name in pins:
+                if re.match(regex, pin_name) is not None:
+                    # check each pin is only matched by one regex...
+                    assert pin_name not in pin_regex_map, (pin_name, pin_regex_map[pin_name], regex)
+                    pin_placement[side].append(pin_name)
+                    pin_regex_map[pin_name] = regex
+    unmatched_pins = [pin_name for pin_name in pins if pin_name not in pin_regex_map]
+    assert len(unmatched_pins) == 0, unmatched_pins
+    return pin_placement
+
+# Block boundaries: 0 0 223275 446230
+#    (offset, count, grid)
+# h  (340, 656, 680)
+# v  (230, 485, 460)
+
+def get_pin_layout(pins, grid, length):
+    # TODO: so that modules can actually abut without channels, we need to special-case the gap between super-tiles...
+    num_tracks = (length // grid)
+    offset = grid // 2
+    result = []
+    assert len(pins) < num_tracks, (len(pins), num_tracks)
+    for i, pin in enumerate(pins):
+        track = (i * num_tracks) // len(pins)
+        pos = track * grid + offset
+        result.append((pin, pos))
+    return result
+
+def gen_def_template(macro_size, pin_config, pins, h_layer, v_layer, pin_length):
+    pin_placement = order_pins(pin_config, pins)
+    width, height = macro_size
+    for side, pins in pin_config.items():
+        layer, grid = v_layer if side in ("#N", "#S") else h_layer
+        length = width if side in ("#N", "#S") else height
+        layout = get_pin_layout(pins, grid, length)
+        for pin, pos in layout:
+            print(f"{side:3s} {pos:8d} {pin}")
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cfg', dest='cfg', required=True)
+    parser.add_argument('--size', dest='size', required=True)
+    parser.add_argument('--verilog', dest='verilog', required=True)
+    parser.add_argument('--top', dest='top', required=True)
+    parser.add_argument('--vlayer', dest='vlayer', required=True)
+    parser.add_argument('--hlayer', dest='hlayer', required=True)
+    parser.add_argument('--pinlen', dest='pinlen', required=True)
+
+    args = parser.parse_args()
+    from ..util import yosys
+    port_bits = yosys.get_port_bits([args.verilog, ] , args.top)
+    pin_config = parse_pin_config(args.cfg)
+    macro_size = tuple(int(x) for x in args.size.split("x"))
+    def parse_layer(l):
+        l, g = l.split(":")
+        return l, int(g)
+    vlayer = parse_layer(args.vlayer)
+    hlayer = parse_layer(args.hlayer)
+    gen_def_template(macro_size, pin_config, port_bits, hlayer, vlayer, int(args.pinlen))
+if __name__ == '__main__':
+    main()
