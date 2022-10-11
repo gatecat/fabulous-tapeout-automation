@@ -52,8 +52,8 @@ def get_port_bits(verilog_files, top):
     result = []
     for p in ports:
         if p.width == 1:
-            result.append(p.name)
+            result.append((p.name, p.direction))
         else:
-            result += [f"{p.name}[{i}]" for i in range(p.width)]
+            result += [(f"{p.name}[{i}]", p.direction) for i in range(p.width)]
     return result
 

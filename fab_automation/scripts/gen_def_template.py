@@ -110,25 +110,56 @@ def order_pins(pin_config, pins):
 
 def get_pin_layout(pins, grid, length):
     # TODO: so that modules can actually abut without channels, we need to special-case the gap between super-tiles...
-    num_tracks = (length // grid)
+    num_tracks = (length // grid) - 1
     offset = grid // 2
     result = []
     assert len(pins) < num_tracks, (len(pins), num_tracks)
     for i, pin in enumerate(pins):
         track = (i * num_tracks) // len(pins)
-        pos = track * grid + offset
+        pos = (track + 1) * grid + offset
         result.append((pin, pos))
     return result
 
-def gen_def_template(macro_size, pin_config, pins, h_layer, v_layer, pin_length):
-    pin_placement = order_pins(pin_config, pins)
-    width, height = macro_size
-    for side, pins in pin_config.items():
-        layer, grid = v_layer if side in ("#N", "#S") else h_layer
-        length = width if side in ("#N", "#S") else height
-        layout = get_pin_layout(pins, grid, length)
-        for pin, pos in layout:
-            print(f"{side:3s} {pos:8d} {pin}")
+def gen_def_template(macro_size, pin_config, pins, h_layer, v_layer, pin_length, top, def_file):
+    with open(def_file, "w") as df:
+        pin_names = [n for n, d in pins]
+        pin_dirs = {n: d for n, d in pins}
+        pin_placement = order_pins(pin_config, pin_names)
+        width, height = macro_size
+
+        print("VERSION 5.8 ;", file=df)
+        print("DIVIDERCHAR \"/\" ;", file=df)
+        print("BUSBITCHARS \"[]\" ;", file=df)
+        print(f"DESIGN {top} ;", file=df)
+        print("UNITS DISTANCE MICRONS 1000 ;", file=df)
+        print(f"DIEAREA ( 0 0 ) ( {width} {height} ) ;", file=df)
+        print(f"PINS {len(pin_names)} ;", file=df)
+        for side, pins in pin_placement.items():
+            layer, grid, pin_width = v_layer if side in ("#N", "#S") else h_layer
+            length = width if side in ("#N", "#S") else height
+            layout = get_pin_layout(pins, grid, length)
+            for pin, pos in layout:
+                print(f"    - {pin} + NET {pin} + DIRECTION {pin_dirs[pin].upper()} + USE SIGNAL", file=df)
+                print(f"      + PORT", file=df)
+                pin_w = pin_width if side in ("#N", "#S") else pin_length
+                pin_h = pin_length if side in ("#N", "#S") else pin_width
+                if side == "#N":
+                    pin_x = pos
+                    pin_y = height - pin_h // 2
+                elif side == "#E":
+                    pin_x = pin_w // 2
+                    pin_y = pos
+                elif side == "#S":
+                    pin_x = pos
+                    pin_y = pin_h // 2
+                elif side == "#W":
+                    pin_x = width - pin_w // 2
+                    pin_y = pos
+                print(f"        + LAYER {layer} ( {-pin_w//2} {-pin_h//2} ) ( {pin_w//2} {pin_h//2} )", file=df)
+                print(f"        + PLACED ( {pin_x} {pin_y} ) N ;", file=df)
+        print("END PINS", file=df)
+        print("END DESIGN", file=df)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -139,6 +170,7 @@ def main():
     parser.add_argument('--vlayer', dest='vlayer', required=True)
     parser.add_argument('--hlayer', dest='hlayer', required=True)
     parser.add_argument('--pinlen', dest='pinlen', required=True)
+    parser.add_argument('--def', dest='def_file', required=True)
 
     args = parser.parse_args()
     from ..util import yosys
@@ -146,10 +178,10 @@ def main():
     pin_config = parse_pin_config(args.cfg)
     macro_size = tuple(int(x) for x in args.size.split("x"))
     def parse_layer(l):
-        l, g = l.split(":")
-        return l, int(g)
+        l, g, w = l.split(":")
+        return l, int(g), int(w)
     vlayer = parse_layer(args.vlayer)
     hlayer = parse_layer(args.hlayer)
-    gen_def_template(macro_size, pin_config, port_bits, hlayer, vlayer, int(args.pinlen))
+    gen_def_template(macro_size, pin_config, port_bits, hlayer, vlayer, int(args.pinlen), args.top, args.def_file)
 if __name__ == '__main__':
     main()
