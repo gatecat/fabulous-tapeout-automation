@@ -97,13 +97,13 @@ def gen_pin_order(pins, result_file):
             vert = side in ("NORTH", "SOUTH")
             if is_supertile:
                 offset = p.subtile[0] if vert else p.subtile[1]
+                # pins should only be on supertile fringe
+                if side == "NORTH": assert p.subtile[1] == 0
+                elif side == "EAST": assert p.subtile[0] == 0
+                elif side == "SOUTH": assert p.subtile[1] == height - 1
+                elif side == "WEST": assert p.subtile[0] == width - 1
             else:
                 offset = 0
-            # pins should only be on supertile fringe
-            if side == "NORTH": assert p.subtile[1] == 0
-            elif side == "EAST": assert p.subtile[0] == 0
-            elif side == "SOUTH": assert p.subtile[1] == height - 1
-            elif side == "WEST": assert p.subtile[0] == width - 1
             this_pin = get_pin_name(p.subtile, p.name)
             if this_pin not in pin_placement[side][offset]:
                 pin_placement[side][offset].append(this_pin)
@@ -133,16 +133,27 @@ def gen_pin_order(pins, result_file):
                     pin_width[op_pin] = p.width
     # write out
     def pin_regex(p):
-        if pin_width[p] > 1:
-            return f"{p}(\\[?).*"
+        if p not in pin_width or pin_width[p] > 1:
+            return f"{p}(\\[.*)?"
         else:
             return p
     with open(result_file, "w") as f:
         for side in ("NORTH", "EAST", "SOUTH", "WEST"):
             print(f"#{side[0]}", file=f)
-            for subtile in pin_placement[side]:
+            for i, subtile in enumerate(pin_placement[side]):
                 for pin in subtile:
                     print(f"{pin_regex(pin)}", file=f)
+                # special pins (currently hardcoded)
+                if side == "NORTH":
+                    if i == 0: print(f"UserCLKo", file=f)
+                    print(pin_regex(get_pin_name((i, 0), "FrameStrobe_O")), file=f)
+                elif side == "SOUTH":
+                    if i == 0: print(f"UserCLKo", file=f)
+                    print(pin_regex(get_pin_name((i, height - 1), "FrameStrobe")), file=f)
+                elif side == "EAST":
+                    print(pin_regex(get_pin_name((0, i), "FrameData_O")), file=f)
+                elif side == "WEST":
+                    print(pin_regex(get_pin_name((width-1, i), "FrameData")), file=f)
             print(f"", file=f)
 
 
