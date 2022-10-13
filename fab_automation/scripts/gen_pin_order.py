@@ -23,7 +23,7 @@ def split_supertile_pin(pin):
     assert m, pin
     return ((int(m.group(1)), int(m.group(2))), m.group(3))
 
-def get_tile_pins(filename):
+def parse_tile_pins(filename):
     pins = []
     curr_side = ""
     with open(filename, "r") as f:
@@ -159,5 +159,5 @@ def gen_pin_order(pins, result_file):
 
 if __name__ == '__main__':
     import sys
-    pins = get_tile_pins(sys.argv[1])
+    pins = parse_tile_pins(sys.argv[1])
     gen_pin_order(pins, sys.argv[2])
