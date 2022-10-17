@@ -33,6 +33,22 @@ def run_yosys(verilog_files, top, script=None):
     os.unlink(json_path)
     return result
 
+def create_blackboxes(verilog_files, out):
+    assert not isinstance(verilog_files, str)
+    sfd, script_path = tempfile.mkstemp(suffix=".ys")
+    with os.fdopen(sfd, "w") as f:
+        for v in verilog_files:
+            if v.endswith(".sv"):
+                print(f"read_verilog -lib -sv {v}", file=f)
+            else:
+                print(f"read_verilog -lib {v}", file=f)
+        print(f"hierarchy", file=f)
+        print(f"setattr -unset src", file=f)
+        print(f"setattr -mod -unset src", file=f)
+        print(f"write_verilog -blackboxes {out}", file=f)
+    subprocess.check_output([get_yosys(), "-s", script_path])
+    os.unlink(script_path)
+
 @dataclass
 class ModulePort:
         name: str

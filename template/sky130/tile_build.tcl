@@ -1,5 +1,5 @@
-set ::env(CLOCK_PERIOD) "40"
-set ::env(CLOCK_PORT) "UserCLK"
+set ::env(CLOCK_PERIOD) "4000"
+set ::env(CLOCK_PORT) ""
 set ::env(CLOCK_TREE_SYNTH) 1
 set ::env(CELL_PAD) 4
 

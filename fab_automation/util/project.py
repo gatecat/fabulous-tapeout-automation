@@ -10,6 +10,7 @@ class PhysTileType:
     width: int
     height: int
     ext_pin_edge: str = ""
+    target_density: float = 0.6
 
 @dataclass
 class PinConfig:
@@ -35,6 +36,7 @@ class ProjectConfig:
     process: str = "sky130"
     cell_map: str = "./cell_map.v"
     tile_base_config: str = "./tile_build.tcl"
+    tile_base_makefile: str = "./tile_build.mk"
 
 @dataclass
 class FabulousIntegration:

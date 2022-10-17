@@ -7,6 +7,7 @@ project
 	process sky130
 	cell_map ./cell_map.v
 	tile_base_config ./tile_build.tcl
+	tile_base_makefile ./tile_build.mk
 end
 
 fabric
@@ -33,11 +34,13 @@ end
 tile LUT4AB
 	width 223275
 	height 223115
+	target_density 0.6
 end
 
 tile DSP
 	width 223275
 	height 446230
+	target_density 0.53
 end
 
 tile RegFile

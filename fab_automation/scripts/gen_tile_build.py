@@ -30,6 +30,8 @@ class TileBuilder:
                     seen_subtiles.add(subtile)
         else:
             self.copy_tile_verilog(self.tile)
+        shutil.copy(self.prj.resolve_path(self.prj.prj_cfg.cell_map), self.workdir)
+        yosys.create_blackboxes([self.prj.resolve_path(self.prj.prj_cfg.cell_map), ], f"{self.workdir}/cells_bb.v")
 
     def add_src(self, verilog):
         base = path.basename(verilog)
@@ -58,8 +60,56 @@ class TileBuilder:
         for bel in tt.bel_verilog:
             self.add_src(self.prj.verilog_path(self.rewrite_bel(bel)))
 
+    def create_pin_order(self):
+        from .gen_pin_order import parse_tile_pins, gen_pin_order
+        pins = parse_tile_pins(self.prj.verilog_path(f"{self.tile}_tile.v"))
+        gen_pin_order(pins, f"{self.workdir}/pin_order.cfg")
+
+    def create_def_template(self):
+        from .gen_def_template import parse_pin_config, gen_def_template
+        tile_cfg = self.prj.tiles[self.tile]
+        port_bits = yosys.get_port_bits([self.prj.verilog_path(f"{self.tile}_tile.v"), ], self.tile)
+        pin_config = parse_pin_config(f"{self.workdir}/pin_order.cfg")
+        physp = self.prj.pin_cfg
+        gen_def_template(
+            macro_size=(tile_cfg.width, tile_cfg.height),
+            pin_config=pin_config,
+            pins=port_bits,
+            h_layer=(physp.h_layer, physp.h_grid, physp.h_width),
+            v_layer=(physp.v_layer, physp.v_grid, physp.v_width),
+            pin_length=physp.pin_length,
+            top=self.tile,
+            def_file=f"{self.workdir}/template.def",
+        )
+
+    def create_openlane_tcl(self):
+        tile_cfg = self.prj.tiles[self.tile]
+        with open(f"{self.workdir}/config.tcl", "w") as f:
+            with open(self.prj.resolve_path(self.prj.prj_cfg.tile_base_config), "r") as tf:
+                # template
+                f.write(tf.read())
+            print("", file=f)
+            print(f"set ::env(DESIGN_NAME) {self.tile}", file=f)
+            print(f"set ::env(VERILOG_FILES) \"$::env(DESIGN_DIR)/cells_bb.v {' '.join(f'$::env(DESIGN_DIR)/src/{s}' for s in self.verilog_src)}\"", file=f)
+            print(f'set ::env(DIE_AREA) "0 0 {tile_cfg.width/1000:.3f} {tile_cfg.height/1000:.3f}"', file=f)
+            print(f"set ::env(SYNTH_LATCH_MAP) $::env(DESIGN_DIR)/{path.basename(self.prj.prj_cfg.cell_map)}", file=f)
+            print(f"set ::env(FP_PIN_ORDER_CFG) $::env(DESIGN_DIR)/pin_order.cfg", file=f)
+            print(f"set ::env(FP_DEF_TEMPLATE) $::env(DESIGN_DIR)/template.def", file=f)
+            print(f"set ::env(PL_TARGET_DENSITY) {tile_cfg.target_density}", file=f)
+            # TODO: SDC
+
+    def create_makefile(self):
+        with open(f"{self.workdir}/Makefile", "w") as f:
+            with open(self.prj.resolve_path(self.prj.prj_cfg.tile_base_makefile), "r") as tf:
+                # template
+                f.write(tf.read())
+
     def run(self):
         self.prepare_dir()
+        self.create_pin_order()
+        self.create_def_template()
+        self.create_openlane_tcl()
+        self.create_makefile()
 
 def main():
     parser = argparse.ArgumentParser()

@@ -140,7 +140,8 @@ def gen_pin_order(pins, result_file):
     with open(result_file, "w") as f:
         for side in ("NORTH", "EAST", "SOUTH", "WEST"):
             print(f"#{side[0]}", file=f)
-            for i, subtile in enumerate(pin_placement[side]):
+            order = list(enumerate(pin_placement[side]))
+            for i, subtile in reversed(order) if side in ("EAST", "WEST") else order:
                 for pin in subtile:
                     print(f"{pin_regex(pin)}", file=f)
                 # special pins (currently hardcoded)
@@ -148,7 +149,7 @@ def gen_pin_order(pins, result_file):
                     if i == 0: print(f"UserCLKo", file=f)
                     print(pin_regex(get_pin_name((i, 0), "FrameStrobe_O")), file=f)
                 elif side == "SOUTH":
-                    if i == 0: print(f"UserCLKo", file=f)
+                    if i == 0: print(f"UserCLK", file=f)
                     print(pin_regex(get_pin_name((i, height - 1), "FrameStrobe")), file=f)
                 elif side == "EAST":
                     print(pin_regex(get_pin_name((0, i), "FrameData_O")), file=f)
