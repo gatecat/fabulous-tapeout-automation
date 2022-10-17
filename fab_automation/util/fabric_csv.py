@@ -20,7 +20,7 @@ class FabricCsv:
     tilegrid: list[list[str]] = field(default_factory=list)
 
     def parse(filename):
-        result = FabricCsv(root=path.abspath(path.dirname(root)))
+        result = FabricCsv(root=path.abspath(path.dirname(filename)))
         lines = []
         with open(filename, "r") as f:
             for line in f:

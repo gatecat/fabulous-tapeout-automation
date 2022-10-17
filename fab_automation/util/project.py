@@ -2,7 +2,7 @@ from dataclasses import dataclass, field, fields
 from typing import Optional
 from os import path
 
-__all__ = ["PhysTileType", "PinConfig", "FabricConfig", "TapepoutProject"]
+__all__ = ["PhysTileType", "PinConfig", "FabricConfig", "TapeoutProject"]
 
 @dataclass
 class PhysTileType:
@@ -59,7 +59,7 @@ def _parse_section(sec_class, lines, init_args=dict()):
     return sec_class(**init_args, **args)
 
 @dataclass
-class TapepoutProject:
+class TapeoutProject:
     root: str
     tiles: dict[str, PhysTileType] = field(default_factory=dict)
     pin_cfg: Optional[PinConfig] = None
@@ -69,7 +69,7 @@ class TapepoutProject:
 
     def parse(filename):
         lines = []
-        result = TapepoutProject(root=path.abspath(path.dirname(filename)))
+        result = TapeoutProject(root=path.abspath(path.dirname(filename)))
         with open(filename, "r") as f:
             for line in f:
                 line = line.split('#')[0].strip()
@@ -105,10 +105,13 @@ class TapepoutProject:
         else:
             return f"{self.root}/{p}"
 
+    def verilog_path(self, p):
+        return f"{self.resolve_path(self.fabulous.verilog_root)}/{p}"
+
     def get_fabric(self):
         from .fabric_csv import FabricCsv
-        return FabricCsv.parse(self.resolve_path(self.fab_cfg.fabric_csv))
+        return FabricCsv.parse(self.resolve_path(self.fabulous.fabric_csv))
 
 if __name__ == '__main__':
     import sys, pprint
-    pprint.pprint(TapepoutProject.parse(sys.argv[1]))
+    pprint.pprint(TapeoutProject.parse(sys.argv[1]))
