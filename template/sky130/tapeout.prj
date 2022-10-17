@@ -1,0 +1,47 @@
+fabulous
+	fabric_csv ${HOME}/FABulous/fabric_generator/csv_output/fabric.csv
+	verilog_root ${HOME}/FABulous/fabric_generator/verilog_output
+end
+
+project
+	process sky130
+	cell_map ./cell_map.v
+	tile_base_config ./tile_build.tcl
+end
+
+fabric
+	tile_space_h 10
+	tile_space_v 10
+	edge_space_n 10
+	edge_space_e 10
+	edge_space_s 10
+	edge_space_w 10
+end
+
+pin_config
+	h_layer met3
+	h_grid 680
+	h_width 600
+
+	v_layer met2
+	v_grid 460
+	v_width 280
+
+	pin_length 800
+end
+
+tile LUT4AB
+	width 223275
+	height 223115
+end
+
+tile DSP
+	width 223275
+	height 446230
+end
+
+tile RegFile
+	width 235000
+	height 223115
+end
+

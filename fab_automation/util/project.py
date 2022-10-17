@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, fields
 from typing import Optional
+from os import path
 
 __all__ = ["PhysTileType", "PinConfig", "FabricConfig", "TapepoutProject"]
 
@@ -30,7 +31,13 @@ class FabricConfig:
     edge_space_w: int = 0
 
 @dataclass
-class FabulousIntegration
+class ProjectConfig:
+    process: str = "sky130"
+    cell_map: str = "./cell_map.v"
+    tile_base_config: str = "./tile_build.tcl"
+
+@dataclass
+class FabulousIntegration:
     fabric_csv: str
     verilog_root: str
 
@@ -53,14 +60,16 @@ def _parse_section(sec_class, lines, init_args=dict()):
 
 @dataclass
 class TapepoutProject:
+    root: str
     tiles: dict[str, PhysTileType] = field(default_factory=dict)
     pin_cfg: Optional[PinConfig] = None
     fab_cfg: Optional[FabricConfig] = None
+    prj_cfg: Optional[ProjectConfig] = None
     fabulous: Optional[FabulousIntegration] = None
 
     def parse(filename):
         lines = []
-        result = TapepoutProject()
+        result = TapepoutProject(root=path.abspath(path.dirname(filename)))
         with open(filename, "r") as f:
             for line in f:
                 line = line.split('#')[0].strip()
@@ -79,13 +88,26 @@ class TapepoutProject:
                 result.tiles[tile.tiletype] = tile
             elif cmd == "pin_config":
                 result.pin_cfg = _parse_section(PinConfig, lines)
-            elif cmd == "fab_config":
+            elif cmd == "fabric":
                 result.fab_cfg = _parse_section(FabricConfig, lines)
+            elif cmd == "project":
+                result.prj_cfg = _parse_section(ProjectConfig, lines)
             elif cmd == "fabulous":
                 result.fabulous = _parse_section(FabulousIntegration, lines)
             else:
                 assert False, f"unknown command {cmd}"
         return result
+
+    def resolve_path(self, p):
+        p = path.expandvars(p)
+        if path.isabs(p):
+            return p
+        else:
+            return f"{self.root}/{p}"
+
+    def get_fabric(self):
+        from .fabric_csv import FabricCsv
+        return FabricCsv.parse(self.resolve_path(self.fab_cfg.fabric_csv))
 
 if __name__ == '__main__':
     import sys, pprint

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional
+from os import path
 
 @dataclass
 class FabricTile:
@@ -13,12 +14,13 @@ class SuperTile:
 
 @dataclass
 class FabricCsv:
+    root: str
     tiletypes: dict[str, FabricTile] = field(default_factory=dict)
     supertiles: dict[str, SuperTile] = field(default_factory=dict)
     tilegrid: list[list[str]] = field(default_factory=list)
 
     def parse(filename):
-        result = FabricCsv()
+        result = FabricCsv(root=path.abspath(path.dirname(root)))
         lines = []
         with open(filename, "r") as f:
             for line in f:
