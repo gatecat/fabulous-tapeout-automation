@@ -37,6 +37,7 @@ class ProjectConfig:
     cell_map: str = "./cell_map.v"
     tile_base_config: str = "./tile_build.tcl"
     tile_base_makefile: str = "./tile_build.mk"
+    tile_base_sdc: str = "./tile_build.sdc"
 
 @dataclass
 class FabulousIntegration:

@@ -96,7 +96,7 @@ class TileBuilder:
             print(f"set ::env(FP_PIN_ORDER_CFG) $::env(DESIGN_DIR)/pin_order.cfg", file=f)
             print(f"set ::env(FP_DEF_TEMPLATE) $::env(DESIGN_DIR)/template.def", file=f)
             print(f"set ::env(PL_TARGET_DENSITY) {tile_cfg.target_density}", file=f)
-            # TODO: SDC
+            print(f"set ::env(BASE_SDC_FILE) $::env(DESIGN_DIR)/design.sdc", file=f)
 
     def create_makefile(self):
         with open(f"{self.workdir}/Makefile", "w") as f:
@@ -104,10 +104,27 @@ class TileBuilder:
                 # template
                 f.write(tf.read())
 
+
+    def create_sdc(self):
+        with open(f"{self.workdir}/design.sdc", "w") as f:
+            with open(self.prj.resolve_path(self.prj.prj_cfg.tile_base_sdc), "r") as tf:
+                # template
+                f.write(tf.read())
+            # add don't cares because multiplier paths could contain silly long loops
+            if self.tile in self.fabric.supertiles:
+                for y, row in enumerate(self.fabric.supertiles[self.tile].subtiles):
+                    for x, subtile in enumerate(row):
+                        print(f"set_disable_timing [get_pins Tile_X{x}Y{y}_{subtile}.Inst_{subtile}_switch_matrix.inst_cus_mux*/X]", file=f)
+            else:
+                print(f"set_disable_timing [get_pins Inst_{self.tile}_switch_matrix.inst_cus_mux*/X]", file=f)
+
+
+
     def run(self):
         self.prepare_dir()
         self.create_pin_order()
         self.create_def_template()
+        self.create_sdc()
         self.create_openlane_tcl()
         self.create_makefile()
 

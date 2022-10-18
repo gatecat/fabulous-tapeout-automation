@@ -8,6 +8,7 @@ project
 	cell_map ./cell_map.v
 	tile_base_config ./tile_build.tcl
 	tile_base_makefile ./tile_build.mk
+	tile_base_sdc ./tile_build.sdc
 end
 
 fabric
