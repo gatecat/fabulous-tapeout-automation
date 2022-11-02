@@ -120,7 +120,7 @@ def get_pin_layout(pins, grid, length):
         result.append((pin, pos))
     return result
 
-def gen_def_template(macro_size, pin_config, pins, h_layer, v_layer, pin_length, top, def_file):
+def gen_def_template(macro_size, micron_scale, pin_config, pins, h_layer, v_layer, pin_length, top, def_file):
     with open(def_file, "w") as df:
         pin_names = [n for n, d in pins]
         pin_dirs = {n: d for n, d in pins}
@@ -131,7 +131,7 @@ def gen_def_template(macro_size, pin_config, pins, h_layer, v_layer, pin_length,
         print("DIVIDERCHAR \"/\" ;", file=df)
         print("BUSBITCHARS \"[]\" ;", file=df)
         print(f"DESIGN {top} ;", file=df)
-        print("UNITS DISTANCE MICRONS 1000 ;", file=df)
+        print(f"UNITS DISTANCE MICRONS {micron_scale} ;", file=df)
         print(f"DIEAREA ( 0 0 ) ( {width} {height} ) ;", file=df)
         print(f"PINS {len(pin_names)} ;", file=df)
         for side, pins in pin_placement.items():
@@ -182,6 +182,6 @@ def main():
         return l, int(g), int(w)
     vlayer = parse_layer(args.vlayer)
     hlayer = parse_layer(args.hlayer)
-    gen_def_template(macro_size, pin_config, port_bits, hlayer, vlayer, int(args.pinlen), args.top, args.def_file)
+    gen_def_template(macro_size, 1000, pin_config, port_bits, hlayer, vlayer, int(args.pinlen), args.top, args.def_file)
 if __name__ == '__main__':
     main()

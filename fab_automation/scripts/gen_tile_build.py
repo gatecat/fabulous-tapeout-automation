@@ -73,6 +73,7 @@ class TileBuilder:
         physp = self.prj.pin_cfg
         gen_def_template(
             macro_size=(tile_cfg.width, tile_cfg.height),
+            micron_scale=self.prj.prj_cfg.micron_scale,
             pin_config=pin_config,
             pins=port_bits,
             h_layer=(physp.h_layer, physp.h_grid, physp.h_width),
@@ -91,7 +92,7 @@ class TileBuilder:
             print("", file=f)
             print(f"set ::env(DESIGN_NAME) {self.tile}", file=f)
             print(f"set ::env(VERILOG_FILES) \"$::env(DESIGN_DIR)/cells_bb.v {' '.join(f'$::env(DESIGN_DIR)/src/{s}' for s in self.verilog_src)}\"", file=f)
-            print(f'set ::env(DIE_AREA) "0 0 {tile_cfg.width/1000:.3f} {tile_cfg.height/1000:.3f}"', file=f)
+            print(f'set ::env(DIE_AREA) "0 0 {tile_cfg.width/self.prj.prj_cfg.micron_scale:.3f} {tile_cfg.height/self.prj.prj_cfg.micron_scale:.3f}"', file=f)
             print(f"set ::env(SYNTH_LATCH_MAP) $::env(DESIGN_DIR)/{path.basename(self.prj.prj_cfg.cell_map)}", file=f)
             print(f"set ::env(FP_PIN_ORDER_CFG) $::env(DESIGN_DIR)/pin_order.cfg", file=f)
             print(f"set ::env(FP_DEF_TEMPLATE) $::env(DESIGN_DIR)/template.def", file=f)

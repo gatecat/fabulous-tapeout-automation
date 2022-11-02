@@ -38,6 +38,7 @@ class ProjectConfig:
     tile_base_config: str = "./tile_build.tcl"
     tile_base_makefile: str = "./tile_build.mk"
     tile_base_sdc: str = "./tile_build.sdc"
+    micron_scale: int = 1000
 
 @dataclass
 class FabulousIntegration:
