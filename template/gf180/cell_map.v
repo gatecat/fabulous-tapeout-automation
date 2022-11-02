@@ -65,7 +65,8 @@ module my_mux2 (A0, A1, S, X);
   input A1;
   input S;
   output X;
-  gf180mcu_fd_sc_mcu7t5v0__mux2_1 _TECHMAP_REPLACE_ (
+  // _1 variant isn't DRC clean...
+  gf180mcu_fd_sc_mcu7t5v0__mux2_2 _TECHMAP_REPLACE_ (
     .I0(A0),
     .I1(A1),
     .S(S),
