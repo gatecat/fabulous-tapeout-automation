@@ -34,8 +34,8 @@ pin_config
 end
 
 tile LUT4AB
-	width 800000
-	height 800000
+	width 780000
+	height 780000
 	target_density 0.6
 end
 

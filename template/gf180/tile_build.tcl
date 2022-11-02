@@ -1,6 +1,6 @@
 set ::env(STD_CELL_LIBRARY) "gf180mcu_fd_sc_mcu7t5v0"
 
-set ::env(CLOCK_PERIOD) "40"
+set ::env(CLOCK_PERIOD) "80"
 set ::env(CLOCK_PORT) "UserCLK"
 set ::env(CLOCK_TREE_SYNTH) 1
 set ::env(CELL_PAD) 4
