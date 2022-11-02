@@ -1,6 +1,6 @@
 fabulous
-	fabric_csv ${HOME}/FABulous/fabric_generator/csv_output/fabric.csv
-	verilog_root ${HOME}/FABulous/fabric_generator/verilog_output
+	fabric_csv ${HOME}/FABulous_gf180/fabric_generator/csv_output/fabric.csv
+	verilog_root ${HOME}/FABulous_gf180/fabric_generator/verilog_output
 end
 
 project
@@ -33,11 +33,54 @@ pin_config
 	pin_length 4000
 end
 
+# LUT tile dimensions
+.def LW 780000
+.def LH 780000
+# term tile dimensions
+.def TW 100000
+.def TH 100000
+
 tile LUT4AB
-	width 780000
-	height 780000
+	width .LW
+	height .LH
 	target_density 0.6
 end
 
+tile RegFile
+	width .LW
+	height .LH
+	target_density 0.6
+end
 
+tile W_IO
+	width .TW
+	height .LH
+	ext_pin_edge WEST
+end
+
+tile E_IO
+	width .TW
+	height .LH
+	ext_pin_edge EAST
+end
+
+tile N_term_single
+	width .LW
+	height .TH
+end
+
+tile S_term_single
+	width .LW
+	height .TH
+end
+
+tile N_term_single2
+	width .LW
+	height .TH
+end
+
+tile S_term_single2
+	width .LW
+	height .TH
+end
 

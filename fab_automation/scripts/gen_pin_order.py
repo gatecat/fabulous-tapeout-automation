@@ -23,13 +23,15 @@ def split_supertile_pin(pin):
     assert m, pin
     return ((int(m.group(1)), int(m.group(2))), m.group(3))
 
-def parse_tile_pins(filename):
+def parse_tile_pins(filename, ext_pin_edge=""):
     pins = []
     curr_side = ""
     with open(filename, "r") as f:
         for line in f:
             if m := side_comment_re.match(line):
                 curr_side = m.group(4)
+            elif line.strip() == "// Tile IO ports from BELs":
+                curr_side = ext_pin_edge
             elif m := fab_pin_re.match(line):
                 iodir = m.group(1)
                 if m.group(3) is not None:

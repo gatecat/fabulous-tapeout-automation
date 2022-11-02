@@ -62,7 +62,8 @@ class TileBuilder:
 
     def create_pin_order(self):
         from .gen_pin_order import parse_tile_pins, gen_pin_order
-        pins = parse_tile_pins(self.prj.verilog_path(f"{self.tile}_tile.v"))
+        pins = parse_tile_pins(self.prj.verilog_path(f"{self.tile}_tile.v"),
+            ext_pin_edge=self.prj.tiles[self.tile].ext_pin_edge)
         gen_pin_order(pins, f"{self.workdir}/pin_order.cfg")
 
     def create_def_template(self):

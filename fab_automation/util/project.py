@@ -45,23 +45,6 @@ class FabulousIntegration:
     fabric_csv: str
     verilog_root: str
 
-def _parse_section(sec_class, lines, init_args=dict()):
-    args = dict()
-    field_types = {field.name: field.type for field in fields(sec_class)}
-    while lines:
-        l = lines.pop()
-        sl = l.split(" ")
-        if len(sl) == 0:
-            continue
-        if sl[0].lower() == "end":
-            break
-        key = sl[0].lower()
-        val = sl[1]
-        if key not in field_types:
-            assert False, f"field {key} not in type {sec_class}"
-        args[key] = field_types[key](val)
-    return sec_class(**init_args, **args)
-
 @dataclass
 class TapeoutProject:
     root: str
@@ -72,7 +55,29 @@ class TapeoutProject:
     fabulous: Optional[FabulousIntegration] = None
 
     def parse(filename):
+
         lines = []
+        defines = {}
+
+        def _parse_section(sec_class, lines, init_args=dict()):
+            args = dict()
+            field_types = {field.name: field.type for field in fields(sec_class)}
+            while lines:
+                l = lines.pop()
+                sl = l.split(" ")
+                if len(sl) == 0:
+                    continue
+                if sl[0].lower() == "end":
+                    break
+                key = sl[0].lower()
+                val = sl[1]
+                if len(val) > 0 and val[0] == "." and val[1:] in defines:
+                    val = defines[val[1:]]
+                if key not in field_types:
+                    assert False, f"field {key} not in type {sec_class}"
+                args[key] = field_types[key](val)
+            return sec_class(**init_args, **args)
+
         result = TapeoutProject(root=path.abspath(path.dirname(filename)))
         with open(filename, "r") as f:
             for line in f:
@@ -87,7 +92,9 @@ class TapeoutProject:
             if len(sl) == 0:
                 continue
             cmd = sl[0].lower()
-            if cmd == "tile":
+            if cmd == ".def":
+                defines[sl[1]] = sl[2]
+            elif cmd == "tile":
                 tile = _parse_section(PhysTileType, lines, init_args=dict(tiletype=sl[1]))
                 result.tiles[tile.tiletype] = tile
             elif cmd == "pin_config":
