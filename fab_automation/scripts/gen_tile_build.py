@@ -111,13 +111,18 @@ class TileBuilder:
             with open(self.prj.resolve_path(self.prj.prj_cfg.tile_base_sdc), "r") as tf:
                 # template
                 f.write(tf.read())
+            # the name of the mux output pin
+            if self.prj.prj_cfg.process == "gf180":
+                opin = "Z"
+            else:
+                opin = "X"
             # add don't cares because multiplier paths could contain silly long loops
             if self.tile in self.fabric.supertiles:
                 for y, row in enumerate(self.fabric.supertiles[self.tile].subtiles):
                     for x, subtile in enumerate(row):
-                        print(f"set_disable_timing [get_pins Tile_X{x}Y{y}_{subtile}.Inst_{subtile}_switch_matrix.inst_cus_mux*/X]", file=f)
+                        print(f"set_disable_timing [get_pins Tile_X{x}Y{y}_{subtile}.Inst_{subtile}_switch_matrix.inst_cus_mux*/{opin}]", file=f)
             else:
-                print(f"set_disable_timing [get_pins Inst_{self.tile}_switch_matrix.inst_cus_mux*/X]", file=f)
+                print(f"set_disable_timing [get_pins Inst_{self.tile}_switch_matrix.inst_cus_mux*/{opin}]", file=f)
 
 
 
