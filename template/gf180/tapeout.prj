@@ -38,7 +38,11 @@ end
 .def LH 780000
 # term tile dimensions
 .def TW 100000
+.def IW 200000
 .def TH 100000
+# RegFile tile dimensions
+.def RW 860000
+.def RH 780000
 
 tile LUT4AB
 	width .LW
@@ -47,19 +51,19 @@ tile LUT4AB
 end
 
 tile RegFile
-	width .LW
-	height .LH
+	width .RW
+	height .RH
 	target_density 0.6
 end
 
 tile W_IO
-	width .TW
+	width .IW
 	height .LH
 	ext_pin_edge WEST
 end
 
 tile E_IO
-	width .TW
+	width .IW
 	height .LH
 	ext_pin_edge EAST
 end
@@ -75,12 +79,12 @@ tile S_term_single
 end
 
 tile N_term_single2
-	width .LW
+	width .RW
 	height .TH
 end
 
 tile S_term_single2
-	width .LW
+	width .RW
 	height .TH
 end
 
