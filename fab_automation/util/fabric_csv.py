@@ -19,6 +19,12 @@ class FabricCsv:
     supertiles: dict[str, SuperTile] = field(default_factory=dict)
     tilegrid: list[list[str]] = field(default_factory=list)
 
+    def height(self):
+        return len(self.tilegrid)
+
+    def width(self):
+        return max(len(row) for row in self.tilegrid)
+
     def parse(filename):
         result = FabricCsv(root=path.abspath(path.dirname(filename)))
         lines = []

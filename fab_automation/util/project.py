@@ -28,8 +28,6 @@ class FabricConfig:
     tile_space_v: int
     edge_space_n: int = 0
     edge_space_e: int = 0
-    edge_space_s: int = 0
-    edge_space_w: int = 0
 
 @dataclass
 class ProjectConfig:

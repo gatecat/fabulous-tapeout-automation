@@ -15,10 +15,8 @@ end
 fabric
 	tile_space_h 10
 	tile_space_v 10
-	edge_space_n 10
-	edge_space_e 10
-	edge_space_s 10
-	edge_space_w 10
+	edge_space_n 50
+	edge_space_e 50
 end
 
 pin_config
@@ -33,12 +31,12 @@ pin_config
 	pin_length 4000
 end
 
-# LUT tile dimensions
+# LUT tile dimensions (DEF units)
 .def LW 780000
 .def LH 780000
 # term tile dimensions
 .def TW 100000
-.def IW 200000
+.def IW 220000
 .def TH 100000
 # RegFile tile dimensions
 .def RW 860000
