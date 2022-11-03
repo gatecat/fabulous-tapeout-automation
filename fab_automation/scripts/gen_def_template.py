@@ -147,13 +147,13 @@ def gen_def_template(macro_size, micron_scale, pin_config, pins, h_layer, v_laye
                     pin_x = pos
                     pin_y = height - pin_h // 2
                 elif side == "#E":
-                    pin_x = pin_w // 2
+                    pin_x = width - pin_w // 2
                     pin_y = pos
                 elif side == "#S":
                     pin_x = pos
                     pin_y = pin_h // 2
                 elif side == "#W":
-                    pin_x = width - pin_w // 2
+                    pin_x = pin_w // 2
                     pin_y = pos
                 print(f"        + LAYER {layer} ( {-pin_w//2} {-pin_h//2} ) ( {pin_w//2} {pin_h//2} )", file=df)
                 print(f"        + PLACED ( {pin_x} {pin_y} ) N ;", file=df)

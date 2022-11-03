@@ -39,7 +39,7 @@ end
 .def IW 220000
 .def TH 100000
 # RegFile tile dimensions
-.def RW 860000
+.def RW 900000
 .def RH 780000
 
 tile LUT4AB
@@ -51,7 +51,7 @@ end
 tile RegFile
 	width .RW
 	height .RH
-	target_density 0.6
+	target_density 0.5
 end
 
 tile W_IO
