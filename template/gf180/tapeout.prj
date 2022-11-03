@@ -13,10 +13,10 @@ project
 end
 
 fabric
-	tile_space_h 10
-	tile_space_v 10
-	edge_space_n 50
-	edge_space_e 50
+	tile_space_h 20
+	tile_space_v 20
+	edge_space_n 20
+	edge_space_e 100
 end
 
 pin_config
