@@ -6,12 +6,13 @@ import shutil
 import argparse
 
 class TileBuilder:
-    def __init__(self, prj, workdir, tile):
+    def __init__(self, prj, workdir, tile, seed_tile=None):
         self.prj = TapeoutProject.parse(prj)
         self.fabric = self.prj.get_fabric()
         self.workdir = workdir
         self.srcdir = f"{workdir}/src"
         self.tile = tile
+        self.seed_tile = seed_tile
         self.verilog_src = []
 
     def prepare_dir(self):
@@ -64,7 +65,10 @@ class TileBuilder:
         from .gen_pin_order import parse_tile_pins, gen_pin_order
         pins = parse_tile_pins(self.prj.verilog_path(f"{self.tile}_tile.v"),
             ext_pin_edge=self.prj.tiles[self.tile].ext_pin_edge)
-        gen_pin_order(pins, f"{self.workdir}/pin_order.cfg")
+        seed_pins = []
+        if self.seed_tile is not None:
+            seed_pins = parse_tile_pins(self.prj.verilog_path(f"{self.seed_tile}_tile.v"), ext_pin_edge="")
+        gen_pin_order(pins, f"{self.workdir}/pin_order.cfg", seed_pins=seed_pins)
 
     def create_def_template(self):
         from .gen_def_template import parse_pin_config, gen_def_template

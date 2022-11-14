@@ -21,11 +21,34 @@ def main():
             if col != "NULL":
                 used_tiles.add(col)
 
+    # get seed tiles to make sure we correctly order pins on termination tiles
+    term_seeds = dict()
+    for (y, row) in enumerate(fab.tilegrid):
+        for (x, col) in enumerate(row):
+            if col == "NULL" or col in term_seeds:
+                continue
+            if y == 0:
+                term_seeds[col] = fab.tilegrid[y+1][x]
+            elif y == len(fab.tilegrid) - 1:
+                term_seeds[col] = fab.tilegrid[y-1][x]
+            elif x == 0:
+                term_seeds[col] = row[x+1]
+            elif x == len(row) - 1:
+                term_seeds[col] = row[x-1]
     used_tiles = list(sorted(used_tiles))
 
+    # build termination tiles last, once we've figured out pin orders...
     for tt in used_tiles:
+        if tt in term_seeds:
+            continue
         print(f"Generating files for {tt}...")
         builder = TileBuilder(prj=args.prj, workdir=f"{args.workdir}/{tt}", tile=tt)
+        builder.run()
+    for tt in used_tiles:
+        if tt not in term_seeds:
+            continue
+        print(f"Generating files for termination tile {tt}...")
+        builder = TileBuilder(prj=args.prj, workdir=f"{args.workdir}/{tt}", tile=tt, seed_tile=term_seeds[tt])
         builder.run()
 
     with open(f"{args.workdir}/Makefile", "w") as mf:

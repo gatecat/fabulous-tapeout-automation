@@ -66,7 +66,8 @@ def opposite_side(s):
     if s == "WEST": return "EAST"
     assert False, s
 
-def gen_pin_order(pins, result_file):
+def gen_pin_order(pins, result_file, seed_pins=[]):
+    # seed pins is used to ensure a correct order for termination tiles
     width = 1
     height = 1
     is_supertile = False
@@ -89,50 +90,58 @@ def gen_pin_order(pins, result_file):
             return f"Tile_X{subtile[0]}Y{subtile[1]}_{basename}"
         else:
             return basename
+    # when working with a seed we need to build a list of which pin names
+    # in the seed actually matter
+    our_pins = set()
+    for p in pins:
+        our_pins.add(get_pin_name(p.subtile, p.name))
     # process pins
     pin_width = dict()
     for side in ("NORTH", "EAST", "SOUTH", "WEST"):
-        for p in pins:
-            if p.side != side:
-                continue
-            # add the primary pin 
-            vert = side in ("NORTH", "SOUTH")
-            if is_supertile:
-                offset = p.subtile[0] if vert else p.subtile[1]
-                # pins should only be on supertile fringe
-                if side == "NORTH": assert p.subtile[1] == 0
-                elif side == "EAST": assert p.subtile[0] == 0
-                elif side == "SOUTH": assert p.subtile[1] == height - 1
-                elif side == "WEST": assert p.subtile[0] == width - 1
-            else:
-                offset = 0
-            this_pin = get_pin_name(p.subtile, p.name)
-            if this_pin not in pin_placement[side][offset]:
-                pin_placement[side][offset].append(this_pin)
-                pin_width[this_pin] = p.width
-            # now we might need to make sure we add this pin's counterparty on the opposite side
-            # in the same order we process this side, so the sides (at least roughly) line up
-            # exact alignment, including supertiles and icky cases, is a future kbity problem...
-            opposite_wire = None
-            if p.src_wire is not None and p.src_wire != "NULL" and p.src_wire != p.name:
-                assert p.dst_wire == p.name
-                opposite_wire = p.src_wire
-            if p.dst_wire is not None and p.dst_wire != "NULL" and p.dst_wire != p.name:
-                assert p.src_wire == p.name
-                opposite_wire = p.dst_wire
-            if opposite_wire is not None:
+        for is_seed in False, True:
+            for p in seed_pins if is_seed else pins:
+                if p.side != side:
+                    continue
+                # add the primary pin 
+                vert = side in ("NORTH", "SOUTH")
                 if is_supertile:
-                    if vert:
-                        op_subtile = (offset, ((height - 1) - p.subtile[1]))
-                    else:
-                        op_subtile = (((width - 1) - p.subtile[0]), offset)
+                    offset = p.subtile[0] if vert else p.subtile[1]
+                    # pins should only be on supertile fringe
+                    if side == "NORTH": assert p.subtile[1] == 0
+                    elif side == "EAST": assert p.subtile[0] == 0
+                    elif side == "SOUTH": assert p.subtile[1] == height - 1
+                    elif side == "WEST": assert p.subtile[0] == width - 1
                 else:
-                    op_subtile = (0, 0)
-                op_pin = get_pin_name(op_subtile, opposite_wire)
-                op_side = opposite_side(side)
-                if op_pin not in pin_placement[op_side][offset]:
-                    pin_placement[op_side][offset].append(op_pin)
-                    pin_width[op_pin] = p.width
+                    offset = 0
+                this_pin = get_pin_name(p.subtile, p.name)
+                if not is_seed or this_pin in our_pins:
+                    if this_pin not in pin_placement[side][offset]:
+                        pin_placement[side][offset].append(this_pin)
+                        pin_width[this_pin] = p.width
+                # now we might need to make sure we add this pin's counterparty on the opposite side
+                # in the same order we process this side, so the sides (at least roughly) line up
+                # exact alignment, including supertiles and icky cases, is a future kbity problem...
+                opposite_wire = None
+                if p.src_wire is not None and p.src_wire != "NULL" and p.src_wire != p.name:
+                    assert p.dst_wire == p.name
+                    opposite_wire = p.src_wire
+                if p.dst_wire is not None and p.dst_wire != "NULL" and p.dst_wire != p.name:
+                    assert p.src_wire == p.name
+                    opposite_wire = p.dst_wire
+                if opposite_wire is not None:
+                    if is_supertile:
+                        if vert:
+                            op_subtile = (offset, ((height - 1) - p.subtile[1]))
+                        else:
+                            op_subtile = (((width - 1) - p.subtile[0]), offset)
+                    else:
+                        op_subtile = (0, 0)
+                    op_pin = get_pin_name(op_subtile, opposite_wire)
+                    if not is_seed or op_pin in our_pins:
+                        op_side = opposite_side(side)
+                        if op_pin not in pin_placement[op_side][offset]:
+                            pin_placement[op_side][offset].append(op_pin)
+                            pin_width[op_pin] = p.width
     # write out
     def pin_regex(p):
         if p not in pin_width or pin_width[p] > 1:
