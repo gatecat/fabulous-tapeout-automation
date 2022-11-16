@@ -29,31 +29,31 @@ This tooling is being used to port FABulous to the new GF180 process, targetting
 
 # Important Configuration Settings
 
-## General
+### General
 
  - Environment variables can be used, for example `${HOME}` and will be expanded as on the shell
  - Constants can be defined using syntax like `.def CONST 1000`, then `.CONST` will be replaced with `1000` (see the gf180 project for an example)
 
-## `fabulous` section
+### `fabulous` section
 
  - `fabric_csv` is a path to the CSV file containing the tile grid and other fabric configuration
  - `verilog_root` is a path to the folder containing generated and bel verilog
 
-## `project` section
+### `project` section
  - `process` is the name of the process used, e.g. `sky130`
  - `micron_scale` is the number of DEF units per micron, default 1000 if not specified
  - `cell_map` is a relative path to a Verilog file used to map cells such as muxes and latches in the FABulous-generated verilog to technology cells
  - `tile_base_config` is a relative path to a Tcl file containing OpenLane configuration common to all tiles.
  - Likewise, `tile_base_sdc` contains a path to a base SDC (timing constraints) file applying to all tiles and `tile_base_makefile` contains the Makefile used for all tiles which should provide a `harden` target that calls OpenLane.
 
-## `fabric` section
+### `fabric` section
 
 Only used when generating the placement files for an entire fabric, not for indivual tile builds
 
  - `tile_space_h` and `tile_space_v` are the horizontal and vertical gaps between tiles in microns
  - `edge_space_n` and `edge_space_e` are the padding to leave on the north and east edges of the fabric
 
-# `pin_config` section
+### `pin_config` section
 
 Configures the interface pins at the boundary of tile macros, used to wire tiles together. Horizontal and vertical pins are configured separately, as they will usually be on different layers.
  - `{h,v}_layer` layer to use for horizontal or vertical pins
@@ -61,7 +61,7 @@ Configures the interface pins at the boundary of tile macros, used to wire tiles
  - `{h,v}_width` routing thickness in DEF units
  - `pin_length` amount to extend pins in DEF units
 
-# `tile <tiletype>` sections
+### `tile <tiletype>` sections
 
 There should be one section per tile/supertile type in the fabric.
  - `width` and `height` are the dimensions of the tile in DEF units
