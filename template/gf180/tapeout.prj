@@ -15,7 +15,7 @@ end
 fabric
 	tile_space_h 20
 	tile_space_v 20
-	edge_space_n 250
+	edge_space_n 150
 	edge_space_e 350
 end
 
@@ -37,7 +37,7 @@ end
 # term tile dimensions
 .def TW 100000
 .def IW 220000
-.def TH 100000
+.def TH 360000
 # RegFile tile dimensions
 .def RW 900000
 .def RH 780000
