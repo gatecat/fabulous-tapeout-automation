@@ -39,6 +39,8 @@ def parse_tile_pins(filename, ext_pin_edge=""):
                 else:
                     width = 1
                 name = m.group(4)
+                if "Emulate_Bitstream" in name:
+                    continue
                 subtile = None
                 if name.startswith("Tile_X"):
                     subtile, basename = split_supertile_pin(name)
