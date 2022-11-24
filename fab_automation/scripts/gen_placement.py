@@ -51,7 +51,7 @@ def main():
             else:
                 hooks.append(f'"{m} vccd1 vssd1 vccd1 vssd1')
         for i, h in enumerate(hooks):
-            term = '"' if i == len(hooks)-1 else ' \\'
+            term = '"' if i == len(hooks)-1 else ', \\'
             print(f"    {h}{term}")
 
 if __name__ == '__main__':

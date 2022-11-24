@@ -29,4 +29,6 @@ set ::env(FP_IO_MODE) 0
 
 set ::env(VDD_NETS) [list {vdd}]
 set ::env(GND_NETS) [list {vss}]
+set ::env(VDD_PINS) [list {vdd}]
+set ::env(GND_PINS) [list {vss}]
 set ::env(DIODE_INSERTION_STRATEGY) 4
