@@ -43,9 +43,16 @@ def main():
         for m, x, y in plc:
             print(f"{m} {x} {y} N", file=f)
     if args.gen_pdn:
+        print('set ::env(FP_PDN_MACRO_HOOKS) "\\')
+        hooks = []
         for m, x, y in plc:
-            print(f'"{m} vccd1 vssd1 vccd1 vssd1,",')
-
+            if prj.prj_cfg.process == "gf180":
+                hooks.append(f'{m} vdd vss vdd vss')
+            else:
+                hooks.append(f'"{m} vccd1 vssd1 vccd1 vssd1')
+        for i, h in enumerate(hooks):
+            term = '"' if i == len(hooks)-1 else ' \\'
+            print(f"    {h}{term}")
 
 if __name__ == '__main__':
     main()

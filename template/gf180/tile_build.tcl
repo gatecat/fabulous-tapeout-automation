@@ -1,3 +1,4 @@
+set ::env(PDK) "gf180mcuC"
 set ::env(STD_CELL_LIBRARY) "gf180mcu_fd_sc_mcu7t5v0"
 
 set ::env(CLOCK_PERIOD) "80"
@@ -26,5 +27,6 @@ set ::env(TOP_MARGIN_MULT) 2
 set ::env(BOTTOM_MARGIN_MULT) 2
 set ::env(FP_IO_MODE) 0
 
-set ::env(VDD_PINS) "vccd1"
-set ::env(GND_PINS) "vssd1"
+set ::env(VDD_NETS) [list {vdd}]
+set ::env(GND_NETS) [list {vss}]
+set ::env(DIODE_INSERTION_STRATEGY) 4
