@@ -1,6 +1,7 @@
 from ..util.project import *
 from ..util import yosys
 from os import path
+import os
 import pathlib
 import shutil
 import argparse
@@ -33,6 +34,10 @@ class TileBuilder:
             self.copy_tile_verilog(self.tile)
         shutil.copy(self.prj.resolve_path(self.prj.prj_cfg.cell_map), self.workdir)
         yosys.create_blackboxes([self.prj.resolve_path(self.prj.prj_cfg.cell_map), ], f"{self.workdir}/cells_bb.v")
+        if self.prj.prj_cfg.tile_extra_files != "":
+            ef_dir = self.prj.resolve_path(self.prj.prj_cfg.tile_extra_files)
+            for file in os.listdir(ef_dir):
+                shutil.copy(path.join(ef_dir, file), self.workdir)
 
     def add_src(self, verilog):
         base = path.basename(verilog)

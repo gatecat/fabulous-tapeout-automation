@@ -46,7 +46,7 @@ def parse_tile_pins(filename, ext_pin_edge=""):
                     subtile, basename = split_supertile_pin(name)
                 else:
                     basename = name
-                if basename.startswith("Frame") or basename.startswith("UserCLK"):
+                if basename.startswith("Frame") or basename.startswith("UserCLK") or basename.startswith("OutputEnable"):
                     # sides for these will be resolved later...
                     side = None
                 else:
@@ -95,7 +95,10 @@ def gen_pin_order(pins, result_file, seed_pins=[]):
     # when working with a seed we need to build a list of which pin names
     # in the seed actually matter
     our_pins = set()
+    has_oe = False
     for p in pins:
+        if "OutputEnable" in p.name:
+            has_oe = True
         our_pins.add(get_pin_name(p.subtile, p.name))
     # process pins
     pin_width = dict()
@@ -160,9 +163,11 @@ def gen_pin_order(pins, result_file, seed_pins=[]):
                 # special pins (currently hardcoded)
                 if side == "NORTH":
                     if i == 0: print(f"UserCLKo", file=f)
+                    if i == 0 and has_oe: print(f"OutputEnable_O", file=f)
                     print(pin_regex(get_pin_name((i, 0), "FrameStrobe_O")), file=f)
                 elif side == "SOUTH":
                     if i == 0: print(f"UserCLK", file=f)
+                    if i == 0 and has_oe: print(f"OutputEnable", file=f)
                     print(pin_regex(get_pin_name((i, height - 1), "FrameStrobe")), file=f)
                 elif side == "EAST":
                     print(pin_regex(get_pin_name((0, i), "FrameData_O")), file=f)
