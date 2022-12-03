@@ -25,8 +25,8 @@ def gen_placement(prj):
         for (x, tt) in enumerate(row):
             if tt == "NULL":
                 continue
-            dx = int(col_dx[x] * prj.prj_cfg.micron_scale / 1000 + 0.1)
-            dy = int(col_dy[y] * prj.prj_cfg.micron_scale / 1000 + 0.1)
+            dx = int(col_dx[x] + 0.1)
+            dy = int(col_dy[y] + 0.1)
             result.append((f"Inst_eFPGA_top.Inst_eFPGA.Tile_X{x}Y{y}_{tt}", dx, dy))
     return result
 
