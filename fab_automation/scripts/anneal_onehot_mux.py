@@ -106,7 +106,7 @@ def do_solve(verilog, layout):
             ext_dx = pin_to_ext[wire][0] - ((x1 + x0) // 2)
             ext_dy = pin_to_ext[wire][1] - ((y1 + y0) // 2)
             ext_hpwl = (abs(ext_dy) + abs(ext_dx))
-        return mux_hpwl + ext_hpwl
+        return 8 * mux_hpwl + ext_hpwl
     def total_hpwl():
         return sum(hpwl(w) for w in pin_to_mux.keys())
 

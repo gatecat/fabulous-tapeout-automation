@@ -32,8 +32,8 @@ pin_config
 end
 
 # LUT tile dimensions (DEF units)
-.def LW 220000
-.def LH 220000
+.def LW 200000
+.def LH 200000
 # term tile dimensions
 .def TW 50000
 .def IW 110000
@@ -42,7 +42,7 @@ end
 tile LUT4AB
 	width .LW
 	height .LH
-	target_density 0.61
+	target_density 0.5
 end
 
 tile W_IO
