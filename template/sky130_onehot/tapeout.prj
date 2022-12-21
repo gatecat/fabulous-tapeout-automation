@@ -1,0 +1,68 @@
+fabulous
+	fabric_csv ${HOME}/fabulous-onehot/fabric_generator/csv_output/fabric.csv
+	verilog_root ${HOME}/fabulous-onehot/fabric_generator/verilog_output
+end
+
+project
+	process sky130
+	cell_map ./cell_map.v
+	tile_base_config ./tile_build.tcl
+	tile_base_makefile ./tile_build.mk
+	tile_base_sdc ./tile_build.sdc
+	tile_extra_files ${HOME}/scratching-post/bitcell/template_sky
+end
+
+fabric
+	tile_space_h 10
+	tile_space_v 10
+	edge_space_n 80
+	edge_space_e 200
+end
+
+pin_config
+	h_layer met3
+	h_grid 680
+	h_width 600
+
+	v_layer met2
+	v_grid 460
+	v_width 280
+
+	pin_length 800
+end
+
+# LUT tile dimensions (DEF units)
+.def LW 220000
+.def LH 220000
+# term tile dimensions
+.def TW 50000
+.def IW 110000
+.def TH 180000
+
+tile LUT4AB
+	width .LW
+	height .LH
+	target_density 0.61
+end
+
+tile W_IO
+	width .IW
+	height .LH
+	ext_pin_edge WEST
+end
+
+tile E_IO
+	width .IW
+	height .LH
+	ext_pin_edge EAST
+end
+
+tile N_term_single
+	width .LW
+	height .TH
+end
+
+tile S_term_single
+	width .LW
+	height .TH
+end

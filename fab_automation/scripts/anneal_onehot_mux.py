@@ -96,14 +96,17 @@ def do_solve(verilog, layout):
         if wire in pin_to_mux:
             for mux in pin_to_mux[wire]:
                 locs.append(bit_pos(mux.word, mux.bit))
-        if wire in pin_to_ext:
-            locs.append(pin_to_ext[wire])
         x0 = min(p[0] for p in locs)
         x1 = max(p[0] for p in locs)
         y0 = min(p[1] for p in locs)
         y1 = max(p[1] for p in locs)
-        return (y1 - y0) + (x1 - x0)
-
+        mux_hpwl = (y1 - y0) + (x1 - x0)
+        ext_hpwl = 0
+        if wire in pin_to_ext:
+            ext_dx = pin_to_ext[wire][0] - ((x1 + x0) // 2)
+            ext_dy = pin_to_ext[wire][1] - ((y1 + y0) // 2)
+            ext_hpwl = (abs(ext_dy) + abs(ext_dx))
+        return mux_hpwl + ext_hpwl
     def total_hpwl():
         return sum(hpwl(w) for w in pin_to_mux.keys())
 
@@ -174,6 +177,19 @@ def do_solve(verilog, layout):
         n_accept = 0
         n_moves = 0
         i += 1
+
+    verilog_lines = []
+    with open(verilog, "r") as f:
+        verilog_lines = list(l for l in f)
+    with open(f"{verilog}.bak", "w") as f:
+        for l in verilog_lines:
+            f.write(l)
+    for m in mux_bits:
+        assert "BLP" in verilog_lines[m.src_line], route_line # quick check we got roughly the right line...
+        verilog_lines[m.src_line] = f"     .BLP(bitline_p[{m.bit}]), .BLN(bitline_n[{m.bit}]), .WL(wordline[{m.word}]),\n"
+    with open(f"{verilog}", "w") as f:
+        for l in verilog_lines:
+            f.write(l)
 
 if __name__ == '__main__':
     import sys
