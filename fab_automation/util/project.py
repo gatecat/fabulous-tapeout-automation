@@ -40,8 +40,7 @@ class ProjectConfig:
 
 @dataclass
 class FabulousIntegration:
-    fabric_csv: str
-    verilog_root: str
+    project_root: str
 
 @dataclass
 class TapeoutProject:
@@ -114,12 +113,12 @@ class TapeoutProject:
         else:
             return f"{self.root}/{p}"
 
-    def verilog_path(self, p):
-        return f"{self.resolve_path(self.fabulous.verilog_root)}/{p}"
+    def project_path(self, p):
+        return f"{self.resolve_path(self.fabulous.project_root)}/{p}"
 
     def get_fabric(self):
         from .fabric_csv import FabricCsv
-        return FabricCsv.parse(self.resolve_path(self.fabulous.fabric_csv))
+        return FabricCsv.parse(self.project_path("fabric.csv"))
 
 if __name__ == '__main__':
     import sys, pprint

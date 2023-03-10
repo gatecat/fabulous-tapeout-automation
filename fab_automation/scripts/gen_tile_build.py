@@ -21,13 +21,13 @@ class TileBuilder:
         pathlib.Path(self.srcdir).mkdir(parents=True, exist_ok=True)
         if self.tile in self.fabric.supertiles:
             # copy supertile verilog
-            self.add_src(self.prj.verilog_path(f"{self.tile}_tile.v"))
+            self.add_src(self.prj.verilog_path(f"./Tile/{self.tile}/{self.tile}.v"))
             seen_subtiles = set()
             for row in self.fabric.supertiles[self.tile].subtiles:
                 for subtile in row:
                     if subtile in seen_subtiles:
                         continue
-                    self.copy_tile_verilog(subtile)
+                    self.copy_tile_verilog(subtile, st_root=f"{self.tile}/")
                     seen_subtiles.add(subtile)
         else:
             self.copy_tile_verilog(self.tile)
@@ -39,41 +39,35 @@ class TileBuilder:
         shutil.copy(verilog, self.srcdir)
         self.verilog_src.append(base)
 
-    def rewrite_bel(self, bel):
-        # hack, we should really just have a fixed fabric.csv...
-        if bel.endswith(".vhdl"):
-            bel = f"{bel[:-5]}.v"
-        if bel == "LUT4c_frame_config.v":
-            bel = "LUT4c_frame_config_dffesr.v"
-        if bel == "MUX8LUT_frame_config.v":
-            bel = "MUX8LUT_frame_config_mux.v"
-        return bel
-
-    def copy_tile_verilog(self, tile):
+    def copy_tile_verilog(self, tile, st_root=""):
         tt = self.fabric.tiletypes[tile]
-        self.add_src(self.prj.verilog_path(f"{tile}_tile.v"))
-        switch_mat = self.prj.verilog_path(f"{tile}_switch_matrix.v")
+        self.add_src(self.prj.project_path(f"./Tile/{st_root}{tile}/{tile}.v"))
+        switch_mat = self.prj.project_path(f"./Tile/{st_root}{tile}/{tile}_switch_matrix.v")
         if path.exists(switch_mat):
             self.add_src(switch_mat)
-        cfg_mem = self.prj.verilog_path(f"{tile}_ConfigMem.v")
+        cfg_mem = self.prj.project_path(f"./Tile/{st_root}{tile}/{tile}_ConfigMem.v")
         if path.exists(cfg_mem):
             self.add_src(cfg_mem)
         for bel in tt.bel_verilog:
-            self.add_src(self.prj.verilog_path(self.rewrite_bel(bel)))
+            self.add_src(self.prj.project_path(bel))
+
+    @property
+    def tile_verilog(self):
+        return self.prj.project_path(f"./Tile/{self.tile}/{self.tile}.v")
 
     def create_pin_order(self):
         from .gen_pin_order import parse_tile_pins, gen_pin_order
-        pins = parse_tile_pins(self.prj.verilog_path(f"{self.tile}_tile.v"),
+        pins = parse_tile_pins(self.tile_verilog,
             ext_pin_edge=self.prj.tiles[self.tile].ext_pin_edge)
         seed_pins = []
         if self.seed_tile is not None:
-            seed_pins = parse_tile_pins(self.prj.verilog_path(f"{self.seed_tile}_tile.v"), ext_pin_edge="")
+            seed_pins = parse_tile_pins(self.tile_verilog, ext_pin_edge="")
         gen_pin_order(pins, f"{self.workdir}/pin_order.cfg", seed_pins=seed_pins)
 
     def create_def_template(self):
         from .gen_def_template import parse_pin_config, gen_def_template
         tile_cfg = self.prj.tiles[self.tile]
-        port_bits = yosys.get_port_bits([self.prj.verilog_path(f"{self.tile}_tile.v"), ], self.tile)
+        port_bits = yosys.get_port_bits([self.tile_verilog, ], self.tile)
         pin_config = parse_pin_config(f"{self.workdir}/pin_order.cfg")
         physp = self.prj.pin_cfg
         gen_def_template(
