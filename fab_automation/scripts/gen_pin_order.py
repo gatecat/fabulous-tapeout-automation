@@ -1,10 +1,10 @@
 import re
+from ..util.fabric_csv import FabricCsv
 from dataclasses import dataclass
 from typing import Optional
 
-side_comment_re = re.compile(r"\s*\/\/\s*(Tile_X(\d+)Y(\d+)_)?(NORTH|EAST|SOUTH|WEST)\s*")
-fab_pin_re = re.compile(r"\s*(input|output)\s*(\[(\d+):\d+\])?\s*([A-Za-z0-9_]+);\s*(\/\/(.*))?")
-pin_meta_re = re.compile(r"wires:(\d+)\s+X_offset:(-?\d+)\s+Y_offset:(-?\d+)\s+source_name:([A-Z0-9_a-z]+)\s+destination_name:([A-Z0-9_a-z]+)\s*")
+side_comment_re = re.compile(r"\s*\/\/\s*.*\.(NORTH|EAST|SOUTH|WEST)\s*")
+fab_pin_re = re.compile(r"\s*(input|output)\s*(\[(\d+):\d+\])?\s*([A-Za-z0-9_]+),?\s*(\/\/(.*))?")
 
 @dataclass
 class TilePin(object):
@@ -23,14 +23,14 @@ def split_supertile_pin(pin):
     assert m, pin
     return ((int(m.group(1)), int(m.group(2))), m.group(3))
 
-def parse_tile_pins(filename, ext_pin_edge=""):
+def parse_tile_pins(fabric, tiletype, filename, ext_pin_edge=""):
     pins = []
     curr_side = ""
     with open(filename, "r") as f:
         for line in f:
             if m := side_comment_re.match(line):
-                curr_side = m.group(4)
-            elif line.strip() == "// Tile IO ports from BELs":
+                curr_side = m.group(1)
+            elif line.strip() == "//Tile IO ports from BELs":
                 curr_side = ext_pin_edge
             elif m := fab_pin_re.match(line):
                 iodir = m.group(1)
@@ -52,12 +52,16 @@ def parse_tile_pins(filename, ext_pin_edge=""):
                 else:
                     side = curr_side
                 pin = TilePin(name=basename, side=side, subtile=subtile, iodir=iodir, width=width)
-                if m.group(6) is not None:
-                    if p := pin_meta_re.match(m.group(6)):
-                        pin.dx = int(p.group(2))
-                        pin.dy = int(p.group(3))
-                        pin.src_wire = p.group(4)
-                        pin.dst_wire = p.group(5)
+                tt = tiletype
+                if subtile is not None:
+                    tt = fabric.supertiles[tiletype].subtiles[subtile[1]][subtile[0]]
+                if tt in fabric.tiletypes:
+                    for w in fabric.tiletypes[tt].wires:
+                        if w.src_name == basename or w.dst_name == basename:
+                            pin.src_wire = w.src_name
+                            pin.dst_wire = w.dst_name
+                            pin.dx = w.dx
+                            pin.dy = w.dy
                 pins.append(pin)
     return pins
 
@@ -173,5 +177,7 @@ def gen_pin_order(pins, result_file, seed_pins=[]):
 
 if __name__ == '__main__':
     import sys
-    pins = parse_tile_pins(sys.argv[1])
-    gen_pin_order(pins, sys.argv[2])
+    csv = FabricCsv.parse(sys.argv[1])
+    tiletype = sys.argv[2]
+    pins = parse_tile_pins(sys.argv[3])
+    gen_pin_order(csv, tiletype, pins, sys.argv[4])

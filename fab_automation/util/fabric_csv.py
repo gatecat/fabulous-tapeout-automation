@@ -3,9 +3,19 @@ from typing import Optional
 from os import path
 
 @dataclass
+class TileWire:
+    direction: str
+    src_name: str
+    dx: int
+    dy: int
+    dst_name: str
+    wire_count: int
+
+@dataclass
 class FabricTile:
     tiletype: str
     bel_verilog: set[str] = field(default_factory=set)
+    wires: list[TileWire] = field(default_factory=list)
 
 @dataclass
 class SuperTile:
@@ -68,6 +78,10 @@ class FabricCsv:
                         break
                     if l[0] == "BEL":
                         tile.bel_verilog.add(l[1].replace(".vhdl", ".v")) # ...?
+                    if l[0] in ("NORTH", "SOUTH", "EAST", "WEST", "JUMP"):
+                        tile.wires.append(TileWire(
+                            l[0], l[1], int(l[2]), int(l[3]), l[4], int(l[5])
+                        ))
                 result.tiletypes[tiletype] = tile
             elif cmd == "SuperTILE":
                 tiletype = l[1]

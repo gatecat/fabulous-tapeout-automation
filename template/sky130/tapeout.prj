@@ -1,6 +1,5 @@
 fabulous
-	fabric_csv ${HOME}/FABulous/fabric_generator/csv_output/fabric.csv
-	verilog_root ${HOME}/FABulous/fabric_generator/verilog_output
+	project_root ${HOME}/FABulous-refactor/demo
 end
 
 project
@@ -16,8 +15,6 @@ fabric
 	tile_space_v 10
 	edge_space_n 10
 	edge_space_e 10
-	edge_space_s 10
-	edge_space_w 10
 end
 
 pin_config
