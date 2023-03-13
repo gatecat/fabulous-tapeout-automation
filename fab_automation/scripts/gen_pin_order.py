@@ -5,6 +5,7 @@ from typing import Optional
 
 side_comment_re = re.compile(r"\s*\/\/\s*.*\.(NORTH|EAST|SOUTH|WEST)\s*")
 fab_pin_re = re.compile(r"\s*(input|output)\s*(\[(\d+):\d+\])?\s*([A-Za-z0-9_]+),?\s*(\/\/(.*))?")
+meta_data_re = re.compile(r".*Side=(NORTH|EAST|SOUTH|WEST).*")
 
 @dataclass
 class TilePin(object):
@@ -50,7 +51,11 @@ def parse_tile_pins(fabric, tiletype, filename, ext_pin_edge=""):
                     # sides for these will be resolved later...
                     side = None
                 else:
-                    side = curr_side
+                    meta = m.group(6)
+                    if n := meta_data_re.match(meta):
+                        side = n.group(1)
+                    else:
+                        side = curr_side
                 pin = TilePin(name=basename, side=side, subtile=subtile, iodir=iodir, width=width)
                 tt = tiletype
                 if subtile is not None:
@@ -163,10 +168,10 @@ def gen_pin_order(pins, result_file, seed_pins=[]):
                     print(f"{pin_regex(pin)}", file=f)
                 # special pins (currently hardcoded)
                 if side == "NORTH":
-                    if i == 0: print(f"UserCLKo", file=f)
+                    print(pin_regex(get_pin_name((i, 0), "UserCLKo")), file=f)
                     print(pin_regex(get_pin_name((i, 0), "FrameStrobe_O")), file=f)
                 elif side == "SOUTH":
-                    if i == 0: print(f"UserCLK", file=f)
+                    print(pin_regex(get_pin_name((i, height - 1), "UserCLK")), file=f)
                     print(pin_regex(get_pin_name((i, height - 1), "FrameStrobe")), file=f)
                 elif side == "EAST":
                     print(pin_regex(get_pin_name((0, i), "FrameData_O")), file=f)
